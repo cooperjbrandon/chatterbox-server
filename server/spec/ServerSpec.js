@@ -63,7 +63,8 @@ describe("Node Server Request Listener Function", function() {
 
    // Testing for a newline isn't a valid test
    // TODO: Replace with with a valid test
-   // expect(res._data).toEqual(JSON.stringify("\n"));
+   console.log('res data is ' + res._data);
+   expect(res._data).toEqual(JSON.stringify([{username: "Jono", message: "Do my bidding!"}]));
    expect(res._ended).toEqual(true);
 
    // Now if we request the log for that room,

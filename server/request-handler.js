@@ -20,12 +20,19 @@ var messages = [];
   // console.log(request);
   // console.log(request.headers['access-control-request-method']);
   // console.log(request.headers);
-  console.log("Serving request type " + request.method + " for url " + request.url);
+  // console.log("Serving request type " + request.method + " for url " + request.url);
 
   var statusCode;
 
+  console.log("the url is" + request.url);
   if (request.url === '/classes/messages') {
     if (request.headers['access-control-request-method'] === 'POST' || request.method === 'POST') {
+      statusCode = 201;
+    } else {
+      statusCode = 200;
+    }
+  } else if (request.url === 'http://127.0.0.1:8080/classes/room1') {
+     if (request.method === 'POST') {
       statusCode = 201;
     } else {
       statusCode = 200;
@@ -34,9 +41,11 @@ var messages = [];
     statusCode = 404;
   }
 
-  request.on('data', function(message) {
-      messages.push(JSON.parse(message));
-  });
+  if (request.method === 'POST') {
+    request.on('data', function(message) {
+        messages.push(JSON.parse(message));
+    });
+  }
 
   /* Without this line, this server wouldn't work. See the note
   * below about CORS. */
@@ -44,7 +53,7 @@ var messages = [];
 
   headers['Content-Type'] = "application/json";
 
-  console.log(statusCode);
+  // console.log(statusCode);
   /* .writeHead() tells our server what HTTP status code to send back */
   response.writeHead(statusCode, headers);
 
