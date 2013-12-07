@@ -8,8 +8,8 @@
  var fs = require("fs");
 
 
-var messages = [];
-var counter = 0;
+ var messages = [];
+ var counter = 0;
 
  var handleRequest = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
@@ -18,20 +18,57 @@ var counter = 0;
   /* Documentation for both request and response can be found at
   * http://nodemanual.org/0.8.14/nodejs_ref_guide/http.html */
 
-  console.log(request);
+  // console.log(request);
   // console.log(request.headers['access-control-request-method']);
   // console.log(request.headers);
   // console.log("Serving request type " + request.method + " for url " + request.url);
-
+  var headers;
   var statusCode;
 
-  if (request.url === '/classes/messages') {
-    if (request.headers['access-control-request-method'] === 'POST' || request.method === 'POST') {
-      statusCode = 201;
-    } else {
-      statusCode = 200;
-    }
-  } else if (request.url === 'http://127.0.0.1:8080/classes/room1') {
+  // console.log(request.headers.accept);
+  var type = request.headers.accept.split(',')[0];
+
+  if (type === 'text/html') {
+    console.log("request for html :" + type);
+
+    headers = defaultCorsHeaders;
+    headers['Content-Type'] = "text/html";
+    // console.log(statusCode);
+    /* .writeHead() tells our server what HTTP status code to send back */
+    response.writeHead(200, headers);
+
+    fs.readFile("../2013-11-chatterbox-clientMINE/client/index.html", function (err, data) {
+      console.log("Read index.html");
+      if (err) {
+        response.writeHead(500, headers);
+        return response.end('Error loading index.html');
+      }
+      response.end(data);
+    });
+
+  } else if (type === 'text/css') {
+      headers = defaultCorsHeaders;
+      headers['Content-Type'] = "text/css";
+      // console.log(statusCode);
+      /* .writeHead() tells our server what HTTP status code to send back */
+      response.writeHead(200, headers);
+
+      fs.readFile("../2013-11-chatterbox-clientMINE/client/styles/styles.css", function (err, data) {
+        console.log("Read css.styles");
+        if (err) {
+          response.writeHead(500, headers);
+          return response.end('Error loading styles.css');
+        }
+        response.end(data);
+      });
+  } else if (request['Content-Type']) {
+    if (request.url === '/classes/messages') {
+      if (request.headers['access-control-request-method'] === 'POST' || request.method === 'POST') {
+        statusCode = 201;
+      } else {
+        statusCode = 200;
+      }
+    } else if (request.url === 'http://127.0.0.1:8080/classes/room1') {
      if (request.method === 'POST') {
       statusCode = 201;
     } else {
@@ -41,18 +78,19 @@ var counter = 0;
     statusCode = 404;
   }
 
+
   if (request.method === 'POST') {
     request.on('data', function(message) {
-        message = JSON.parse(message);
-        message.objectId = counter;
-        counter++;
-        messages.unshift(message);
+      message = JSON.parse(message);
+      message.objectId = counter;
+      counter++;
+      messages.unshift(message);
     });
   }
 
   /* Without this line, this server wouldn't work. See the note
   * below about CORS. */
-  var headers = defaultCorsHeaders;
+  headers = defaultCorsHeaders;
 
   headers['Content-Type'] = "application/json";
 
@@ -68,16 +106,17 @@ var counter = 0;
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-
-//    fs.readFile("../2013-11-chatterbox-client/client/index.html", function (err, data) {
-//     if (err) {
-//       response.writeHead(500);
-//       return response.end('Error loading index.html');
-//     }
-//     response.writeHead(200);
-//     response.end(data);
-//   });
- };
+ } else {
+  fs.readFile("../2013-11-chatterbox-clientMINE/client/index.html", function (err, data) {
+    console.log("Read index.html");
+    if (err) {
+      response.writeHead(500, headers);
+      return response.end('Error loading index.html');
+    }
+    response.end(data);
+  });
+}
+};
 
 /* These headers will allow Cross-Origin Resource Sharing (CORS).
  * This CRUCIAL code allows this server to talk to websites that
