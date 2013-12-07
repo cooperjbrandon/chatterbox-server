@@ -5,32 +5,67 @@
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
 
-var handleRequest = function(request, response) {
+ var fs = require("fs");
+
+
+var messages = [];
+
+ var handleRequest = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
   request - such as what URL the browser is requesting. */
 
   /* Documentation for both request and response can be found at
-   * http://nodemanual.org/0.8.14/nodejs_ref_guide/http.html */
+  * http://nodemanual.org/0.8.14/nodejs_ref_guide/http.html */
 
+  // console.log(request);
+  // console.log(request.headers['access-control-request-method']);
+  // console.log(request.headers);
   console.log("Serving request type " + request.method + " for url " + request.url);
 
-  var statusCode = 200;
+  var statusCode;
+
+  if (request.url === '/classes/messages') {
+    if (request.headers['access-control-request-method'] === 'POST' || request.method === 'POST') {
+      statusCode = 201;
+    } else {
+      statusCode = 200;
+    }
+  } else {
+    statusCode = 404;
+  }
+
+  request.on('data', function(message) {
+      messages.push(JSON.parse(message));
+  });
 
   /* Without this line, this server wouldn't work. See the note
-   * below about CORS. */
+  * below about CORS. */
   var headers = defaultCorsHeaders;
 
-  headers['Content-Type'] = "text/plain";
+  headers['Content-Type'] = "application/json";
 
+  console.log(statusCode);
   /* .writeHead() tells our server what HTTP status code to send back */
   response.writeHead(statusCode, headers);
 
+  // Body of the http request
+  // response.write('[]');
+
+  response.end(JSON.stringify(messages));
   /* Make sure to always call response.end() - Node will not send
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-  response.end("Hello, World!");
-};
+
+//    fs.readFile("../2013-11-chatterbox-client/client/index.html", function (err, data) {
+//     if (err) {
+//       response.writeHead(500);
+//       return response.end('Error loading index.html');
+//     }
+//     response.writeHead(200);
+//     response.end(data);
+//   });
+ };
 
 /* These headers will allow Cross-Origin Resource Sharing (CORS).
  * This CRUCIAL code allows this server to talk to websites that
@@ -43,3 +78,5 @@ var defaultCorsHeaders = {
   "access-control-allow-headers": "content-type, accept",
   "access-control-max-age": 10 // Seconds.
 };
+
+exports.handleRequest = handleRequest;
