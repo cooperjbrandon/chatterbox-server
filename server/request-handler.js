@@ -9,6 +9,7 @@
 
 
 var messages = [];
+var counter = 0;
 
  var handleRequest = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
@@ -17,14 +18,13 @@ var messages = [];
   /* Documentation for both request and response can be found at
   * http://nodemanual.org/0.8.14/nodejs_ref_guide/http.html */
 
-  // console.log(request);
+  console.log(request);
   // console.log(request.headers['access-control-request-method']);
   // console.log(request.headers);
   // console.log("Serving request type " + request.method + " for url " + request.url);
 
   var statusCode;
 
-  console.log("the url is" + request.url);
   if (request.url === '/classes/messages') {
     if (request.headers['access-control-request-method'] === 'POST' || request.method === 'POST') {
       statusCode = 201;
@@ -43,7 +43,10 @@ var messages = [];
 
   if (request.method === 'POST') {
     request.on('data', function(message) {
-        messages.push(JSON.parse(message));
+        message = JSON.parse(message);
+        message.objectId = counter;
+        counter++;
+        messages.unshift(message);
     });
   }
 
